@@ -1,4 +1,4 @@
-package main
+package dolce
 
 import (
 	"fmt"
@@ -6,11 +6,6 @@ import (
 	"net/url"
 	"strings"
 )
-
-type Result struct {
-	Name   string
-	Manget map[string]string
-}
 
 var trackers []string = []string{
 	"udp://open.demonii.com:1337/announce",
@@ -30,10 +25,7 @@ var trackers []string = []string{
 	// "http://bt.careland.com.cn:6969/announce",
 }
 
-func main() {
-	term := "tv Big Bang Theory"
-	deepCrawl := false
-
+func Search(term string, deepCrawl bool) {
 	searchUrl := fmt.Sprintf("https://torrentz.eu/verified?f=%s", url.QueryEscape(term))
 	fmt.Println("Parsing ", searchUrl)
 
@@ -44,21 +36,21 @@ func main() {
 			name := s.Find("a").Text()
 			fmt.Println(name)
 			if deepCrawl == true {
-				results := ListResultPages("https://torrentz.eu" + link)
+				results := listResultPages("https://torrentz.eu" + link)
 				for site, link := range results {
 					fmt.Println(site)
-					FindMagnet(link)
+					findMagnet(link)
 				}
 			} else {
 				infohash := strings.Trim(link, "/")
-				magnetUrl := FakeMagnet(infohash)
+				magnetUrl := fakeMagnet(infohash)
 				fmt.Println(magnetUrl)
 			}
 		})
 	}
 }
 
-func ListResultPages(url string) map[string]string {
+func listResultPages(url string) map[string]string {
 	results := make(map[string]string)
 	doc, err := goquery.NewDocument(url)
 	if err == nil {
@@ -75,7 +67,7 @@ func ListResultPages(url string) map[string]string {
 	return results
 }
 
-func FindMagnet(url string) map[string]string {
+func findMagnet(url string) map[string]string {
 	doc, err := goquery.NewDocument(url)
 	if err == nil {
 		doc.Find("a").Each(func(i int, s *goquery.Selection) {
@@ -89,7 +81,7 @@ func FindMagnet(url string) map[string]string {
 	return nil
 }
 
-func FakeMagnet(infohash string) string {
+func fakeMagnet(infohash string) string {
 	var magnetUrl string = fmt.Sprintf("magnet:?xt=urn:btih:%s", infohash)
 	for _, tracker := range trackers {
 		magnetUrl += fmt.Sprintf("&tr=%s", url.QueryEscape(tracker))
