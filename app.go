@@ -13,8 +13,8 @@ type Result struct {
 }
 
 func main() {
-	term := "Big Bang Theory"
-	searchUrl := fmt.Sprintf("https://torrentz.eu/search?q=%s", url.QueryEscape(term))
+	term := "tv Big Bang Theory"
+	searchUrl := fmt.Sprintf("https://torrentz.eu/verified?f=%s", url.QueryEscape(term))
 	fmt.Println("Parsing ", searchUrl)
 	doc, err := goquery.NewDocument(searchUrl)
 	if err == nil {
