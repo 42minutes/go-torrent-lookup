@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
+	"net/url"
 	"strings"
 )
 
@@ -13,8 +14,9 @@ type Result struct {
 
 func main() {
 	term := "Big Bang Theory"
-	fmt.Println("https://torrentz.eu/search?q=" + strings.Replace(term, " ", "+", -1))
-	doc, err := goquery.NewDocument("https://torrentz.eu/search?q=" + strings.Replace(term, " ", "+", -1))
+	searchUrl := fmt.Sprintf("https://torrentz.eu/search?q=%s", url.QueryEscape(term))
+	fmt.Println("Parsing ", searchUrl)
+	doc, err := goquery.NewDocument(searchUrl)
 	if err == nil {
 		doc.Find(".results dl dt").Each(func(i int, s *goquery.Selection) {
 			link, _ := s.Find("a").Attr("href")
