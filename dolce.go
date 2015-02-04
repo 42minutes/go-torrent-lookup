@@ -1,4 +1,4 @@
-package dolce
+package torrentlookup
 
 import (
 	"fmt"
