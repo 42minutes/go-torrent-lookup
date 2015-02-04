@@ -29,16 +29,17 @@ var trackers []string = []string{
 }
 
 type Provider struct {
-	Name        string
-	SearchUrl   string
-	NameQuery   string
-	MagnetQuery string
-	SeedsQuery  string
-	Crawl       bool
+	Name           string
+	SearchUrl      string
+	RowQuery       string
+	NameSubQuery   string
+	MagnetSubQuery string
+	SeedsSubQuery  string
+	Crawl          bool
 }
 
 var providers map[string]Provider = map[string]Provider{
-	"kickass": {Name: "Kickass", SearchUrl: "https://kickass.so/usearch/%s", NameQuery: "td:nth-child(1) .torrentname div a", MagnetQuery: "td:nth-child(1) a.imagnet", SeedsQuery: "td:nth-child(5)", Crawl: false},
+	"kickass": {Name: "Kickass", SearchUrl: "https://kickass.so/usearch/%s/?field=seeders&sorder=desc", RowQuery: "table table tr", NameSubQuery: ".torrentname div a", MagnetSubQuery: "a.imagnet", SeedsSubQuery: "td:nth-child(5)", Crawl: false},
 	// "torrentz": {Name: "Torrentz.eu", SearchUrl: "https://torrentz.eu/verified?f=%s", NameQuery: ".results dl dt a", MagnetQuery: ".results dl dt a", Crawl: false},
 }
 
@@ -47,17 +48,18 @@ func SearchProvider(query string, providerKey string) (name, infohash string) {
 	searchUrl := fmt.Sprintf(provider.SearchUrl, url.QueryEscape(query))
 	doc, err := goquery.NewDocument(searchUrl)
 	if err == nil {
-		seedsString := doc.Find(provider.SeedsQuery).First().Text()
-		seeds, _ := strconv.Atoi(seedsString)
-		name = doc.Find(provider.NameQuery).First().Text()
-		magnet, _ := doc.Find(provider.MagnetQuery).First().Attr("href")
-		if magnet != "" {
-			infohash = getInfohashFromMagnet(magnet)
-		}
-		if seeds == 0 {
-			name = ""
-			infohash = ""
-		}
+		doc.Find(provider.RowQuery).EachWithBreak(func(i int, s *goquery.Selection) bool {
+			seeds, _ := strconv.Atoi(s.Find(provider.SeedsSubQuery).First().Text())
+			name = s.Find(provider.NameSubQuery).First().Text()
+			magnet, _ := s.Find(provider.MagnetSubQuery).First().Attr("href")
+			if magnet != "" {
+				infohash = getInfohashFromMagnet(magnet)
+			}
+			if seeds > 0 && infohash != "" {
+				return false
+			}
+			return true
+		})
 	}
 	return name, infohash
 }
