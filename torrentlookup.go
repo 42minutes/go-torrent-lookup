@@ -3,6 +3,8 @@ package torrentlookup
 import (
 	"fmt"
 	"net/url"
+	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -26,29 +28,53 @@ var trackers []string = []string{
 	// "http://bt.careland.com.cn:6969/announce",
 }
 
-func Search(term string, deepCrawl bool) (string, string) {
-	infohash := ""
-	name := ""
-	searchUrl := fmt.Sprintf("https://torrentz.eu/verified?f=%s", url.QueryEscape(term))
+type Provider struct {
+	Name        string
+	SearchUrl   string
+	NameQuery   string
+	MagnetQuery string
+	SeedsQuery  string
+	Crawl       bool
+}
+
+var providers map[string]Provider = map[string]Provider{
+	"kickass": {Name: "Kickass", SearchUrl: "https://kickass.so/usearch/%s", NameQuery: "td:nth-child(1) .torrentname div a", MagnetQuery: "td:nth-child(1) a.imagnet", SeedsQuery: "td:nth-child(5)", Crawl: false},
+	// "torrentz": {Name: "Torrentz.eu", SearchUrl: "https://torrentz.eu/verified?f=%s", NameQuery: ".results dl dt a", MagnetQuery: ".results dl dt a", Crawl: false},
+}
+
+func SearchProvider(query string, providerKey string) (name, infohash string) {
+	provider := providers[providerKey]
+	searchUrl := fmt.Sprintf(provider.SearchUrl, url.QueryEscape(query))
 	doc, err := goquery.NewDocument(searchUrl)
 	if err == nil {
-		doc.Find(".results dl dt").Each(func(i int, s *goquery.Selection) {
-			link, _ := s.Find("a").Attr("href")
-			name = s.Find("a").Text()
-			if deepCrawl == true {
-				results := listResultPages("https://torrentz.eu" + link)
-				for _, link := range results {
-					magnets := findMagnets(link)
-					if len(magnets) > 0 {
-						infohash = magnets[0] // TODO Return infohash, not magnet
-					}
-				}
-			} else {
-				infohash = strings.Trim(link, "/")
-			}
-		})
+		seedsString := doc.Find(provider.SeedsQuery).First().Text()
+		seeds, _ := strconv.Atoi(seedsString)
+		name = doc.Find(provider.NameQuery).First().Text()
+		magnet, _ := doc.Find(provider.MagnetQuery).First().Attr("href")
+		if magnet != "" {
+			infohash = getInfohashFromMagnet(magnet)
+		}
+		if seeds == 0 {
+			name = ""
+			infohash = ""
+		}
 	}
 	return name, infohash
+}
+
+// TODO Allow Search to return multiple results for us to be able to check season/episode
+func Search(query string) (name, infohash string) {
+	for providerKey, _ := range providers {
+		name, infohash = SearchProvider(query, providerKey)
+	}
+	return name, infohash
+}
+
+func getInfohashFromMagnet(magnet string) (infohash string) {
+	re := regexp.MustCompile("([a-zA-Z0-9]{40})")
+	// TODO Check for errors
+	// TODO Need a beter regex
+	return re.FindString(magnet)
 }
 
 func listResultPages(url string) map[string]string {
