@@ -86,7 +86,7 @@ func findMagnets(url string) []string {
 	return nil
 }
 
-func fakeMagnet(infohash string) string {
+func FakeMagnet(infohash string) string {
 	var magnetUrl string = fmt.Sprintf("magnet:?xt=urn:btih:%s", infohash)
 	for _, tracker := range trackers {
 		magnetUrl += fmt.Sprintf("&tr=%s", url.QueryEscape(tracker))
