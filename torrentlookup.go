@@ -2,9 +2,10 @@ package torrentlookup
 
 import (
 	"fmt"
-	"github.com/PuerkitoBio/goquery"
 	"net/url"
 	"strings"
+
+	"github.com/PuerkitoBio/goquery"
 )
 
 var trackers []string = []string{
@@ -29,13 +30,10 @@ func Search(term string, deepCrawl bool) (string, string) {
 	infohash := ""
 	name := ""
 	searchUrl := fmt.Sprintf("https://torrentz.eu/verified?f=%s", url.QueryEscape(term))
-	fmt.Println("Parsing ", searchUrl)
-
 	doc, err := goquery.NewDocument(searchUrl)
 	if err == nil {
 		doc.Find(".results dl dt").Each(func(i int, s *goquery.Selection) {
 			link, _ := s.Find("a").Attr("href")
-			fmt.Println(name)
 			name = s.Find("a").Text()
 			if deepCrawl == true {
 				results := listResultPages("https://torrentz.eu" + link)
@@ -46,7 +44,6 @@ func Search(term string, deepCrawl bool) (string, string) {
 					}
 				}
 			} else {
-				fmt.Println(magnetUrl)
 				infohash = strings.Trim(link, "/")
 			}
 		})
@@ -64,7 +61,6 @@ func listResultPages(url string) map[string]string {
 				link, _ := s.Find("dt a").Attr("href")
 				name := s.Find("dt a span.u").Text()
 				results[name] = link
-				// fmt.Println(name, link)
 			}
 		})
 	}
@@ -77,7 +73,6 @@ func findMagnets(url string) []string {
 	if err == nil {
 		doc.Find("a").Each(func(i int, s *goquery.Selection) {
 			link, _ := s.Attr("href")
-			// fmt.Println(link)
 			if strings.Contains(string(link), "magnet:") {
 				magnets = append(magnets, link)
 			}
