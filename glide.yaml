@@ -1,0 +1,3 @@
+package: github.com/42minutes/go-torrentlookup
+import:
+- package: github.com/PuerkitoBio/goquery
