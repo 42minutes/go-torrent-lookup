@@ -26,11 +26,12 @@ type Torrent struct {
 }
 
 // Search allows finding magnet links in the provider
-func (provider *Provider) Search(query string) (results []Torrent, err error) {
+func (provider *Provider) Search(query string) (*[]Torrent, error) {
+	results := []Torrent{}
 	searchURL := fmt.Sprintf(provider.SearchURL, url.QueryEscape(query))
 	doc, err := goquery.NewDocument(searchURL)
 	if err != nil {
-		return
+		return nil, err
 	}
 	doc.Find(provider.RowQuery).Each(func(i int, s *goquery.Selection) {
 		var infohash, name string
@@ -48,7 +49,7 @@ func (provider *Provider) Search(query string) (results []Torrent, err error) {
 		}
 
 	})
-	return results, nil
+	return &results, nil
 }
 
 func getInfohashFromMagnet(magnet string) (infohash string) {
