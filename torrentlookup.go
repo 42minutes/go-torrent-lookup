@@ -42,11 +42,11 @@ func (provider *Provider) Search(query string) ([]*Torrent, error) {
 			infohash = getInfohashFromMagnet(magnet)
 		}
 		if seeds > 0 && infohash != "" {
-			tor := Torrent{
+			tor := &Torrent{
 				Name:     name,
 				Infohash: infohash,
 			}
-			results = append(results, &tor)
+			results = append(results, tor)
 		}
 
 	})
