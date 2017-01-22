@@ -9,3 +9,13 @@ var ProviderTPB = &Provider{
 	MagnetSubQuery: "td:nth-child(2) > a:nth-child(2)",
 	SeedsSubQuery:  "td:nth-child(3)",
 }
+
+// ProviderTorzeu -
+var ProviderTorzeu = &Provider{
+	Name:           "Torrentz2.eu",
+	SearchURL:      "https://torrentz2.eu/search?f=%s",
+	RowQuery:       "dl>dt",
+	NameSubQuery:   "dl>dt>a",
+	MagnetSubQuery: "dl>dt>a",
+	SeedsSubQuery:  "dl>dd>span:nth-child(4)",
+}
