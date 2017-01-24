@@ -23,6 +23,7 @@ type Provider struct {
 type Torrent struct {
 	Name     string
 	Infohash string
+	Seeds    int
 }
 
 // Search allows finding magnet links in the provider
@@ -45,6 +46,7 @@ func (provider *Provider) Search(query string) ([]*Torrent, error) {
 			tor := &Torrent{
 				Name:     name,
 				Infohash: infohash,
+				Seeds:    seeds,
 			}
 			results = append(results, tor)
 		}
