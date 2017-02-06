@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 )
@@ -36,7 +37,12 @@ func (provider *Provider) Search(query string) ([]*Torrent, error) {
 	}
 	doc.Find(provider.RowQuery).Each(func(i int, s *goquery.Selection) {
 		var infohash, name string
-		seeds, _ := strconv.Atoi(s.Find(provider.SeedsSubQuery).First().Text())
+		seeds, _ := strconv.Atoi(
+			strings.Replace(
+				s.Find(provider.SeedsSubQuery).First().Text(),
+				",", "", -1,
+			),
+		)
 		name = s.Find(provider.NameSubQuery).First().Text()
 		magnet, _ := s.Find(provider.MagnetSubQuery).First().Attr("href")
 		if magnet != "" {
